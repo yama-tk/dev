@@ -117,6 +117,7 @@ CREATE TABLE histories (
 	purchased_at DATE NOT NULL,
 	address VARCHAR(255) NOT NULL,
 	is_cancel BOOLEAN NOT NULL DEFAULT FALSE,
+	payment VARCHAR(255) NOT NULL,
 	canceled_at DATE DEFAULT NULL,
 	
 	-- 主キー
