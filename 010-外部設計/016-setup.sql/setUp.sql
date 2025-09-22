@@ -1,11 +1,20 @@
 --* シーケンスの作成 **************************--
 
 -- シーケンスのリセット
+DROP SEQUENCE IF EXISTS users_user_num_seq;
 DROP SEQUENCE IF EXISTS categories_category_id_seq;
 DROP SEQUENCE IF EXISTS colors_color_id_seq;
 DROP SEQUENCE IF EXISTS items_item_id_seq;
 DROP SEQUENCE IF EXISTS payments_payment_id_seq;
 DROP SEQUENCE IF EXISTS histories_history_id_seq;
+
+-- 会員番号のシーケンスの作成
+CREATE SEQUENCE users_user_num_seq
+	START WITH 100001 -- 開始値:100,001
+	INCREMENT BY 1    -- 増分値:1
+	MAXVALUE 999999   -- 最大値:999,999
+	NO CYCLE          -- 最大値に達した場合エラーを出力
+;
 
 -- カテゴリIDのシーケンスの作成
 CREATE SEQUENCE categories_category_id_seq
@@ -63,15 +72,17 @@ DROP TABLE IF EXISTS users;
 
 -- 会員テーブルの作成
 CREATE TABLE users (
-	user_id VARCHAR(255) NOT NULL,
+	user_num INTEGER NOT NULL,
 	user_name VARCHAR(255) NOT NULL,
+	user_id VARCHAR(255) UNIQUE NOT NULL,
 	password VARCHAR(255) NOT NULL,
 	address VARCHAR(255) NOT NULL,
 	is_withdraw BOOLEAN NOT NULL DEFAULT FALSE,
 	withdrew_at DATE DEFAULT NULL,
+	withdrew_id VARCHAR(255) DEFAULT NULL,
 	
 	-- 主キー
-	PRIMARY KEY (user_id)
+	PRIMARY KEY (user_num)
 );
 
 -- カテゴリテーブルの作成
@@ -115,16 +126,16 @@ CREATE TABLE items (
 
 -- カートテーブルの作成
 CREATE TABLE items_in_cart (
-	user_id VARCHAR(255) NOT NULL,
+	user_num INTEGER NOT NULL,
 	item_id INTEGER NOT NULL,
 	amount INTEGER NOT NULL,
 	
 	-- 主キー
-	PRIMARY KEY (user_id,item_id),
+	PRIMARY KEY (user_num,item_id),
 	
 	-- 外部キー
-	FOREIGN KEY (user_id) 
-		REFERENCES users (user_id),
+	FOREIGN KEY (user_num) 
+		REFERENCES users (user_num),
 	FOREIGN KEY (item_id) 
 		REFERENCES items (item_id)
 );
@@ -141,7 +152,7 @@ CREATE TABLE payments (
 -- 履歴ヘッダテーブル
 CREATE TABLE histories (
 	history_id INTEGER NOT NULL,
-	user_id VARCHAR(255) NOT NULL,
+	user_num INTEGER NOT NULL,
 	purchased_at DATE NOT NULL,
 	address VARCHAR(255) NOT NULL,
 	payment_id INTEGER NOT NULL,
@@ -152,8 +163,8 @@ CREATE TABLE histories (
 	PRIMARY KEY (history_id),
 	
 	-- 外部キー
-	FOREIGN KEY (user_id) 
-		REFERENCES users (user_id),
+	FOREIGN KEY (user_num) 
+		REFERENCES users (user_num),
 	FOREIGN KEY (payment_id) 
 		REFERENCES payments (payment_id)
 );
@@ -178,10 +189,10 @@ CREATE TABLE history_details (
 --* 初期レコードの設定 ******************************--
 
 -- 会員テーブルの初期レコード
-INSERT INTO users (user_id, user_name, password, address)
-	VALUES ('distaro@example.com', 'DIS太郎', 'distaro001', '東京都渋谷区恵比寿1-1-1'),
-		   ('daiichi@example.com', '山田第一子', 'daiichi002', '埼玉県さいたま市中央区1-1-1'),
-		   ('senryakaku@example.com', '戦略本夫', 'senryaku003', '沖縄県那覇市1-1-1');
+INSERT INTO users (user_num, user_name, user_id, password, address)
+	VALUES (nextval('users_user_num_seq'), 'DIS太郎', 'distaro@example.com', 'distaro001', '東京都渋谷区恵比寿1-1-1'),
+		   (nextval('users_user_num_seq'), '山田第一子', 'daiichi@example.com', 'daiichi002', '埼玉県さいたま市中央区1-1-1'),
+		   (nextval('users_user_num_seq'), '戦略本夫', 'senryakaku@example.com', 'senryaku003', '沖縄県那覇市1-1-1');
 		  
 -- カテゴリテーブルの初期レコード
 INSERT INTO categories (category_id, category_name) 
